@@ -19,6 +19,11 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('password'),
         ]);
 
+        $this->call([
+            SizeCoffeeSeeder::class,
+            CoffeeSeeder::class,
+        ]);
+
         // Создаем категории
         $categories = [
             [

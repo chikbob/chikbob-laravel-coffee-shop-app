@@ -22,8 +22,8 @@ class SignupRequest extends FormRequest
                 'confirmed',
                 Password::min(6)
                     ->letters()
-                    ->numbers()
-                    ->symbols()
+                  //  ->numbers()
+                  //  ->symbols()
             ],
         ];
     }

@@ -12,6 +12,8 @@ Route::middleware(['web'])->group(function () {
     // Главная — доступна всем (гостям и авторизованным)
     Route::get('/', [PageController::class, 'home'])->name('home');
 
+    Route::get('/menu/coffee', [PageController::class, 'coffeeMenu'])->name('menu.coffee');
+
     // Гости
     Route::middleware('guest')->group(function () {
         Route::get('/login', [PageController::class, 'login'])->name('login');

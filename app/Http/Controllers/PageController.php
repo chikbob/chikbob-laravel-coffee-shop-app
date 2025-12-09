@@ -55,4 +55,17 @@ class PageController extends Controller
             ],
         ]);
     }
+
+    public function coffeeMenu()
+    {
+        // отдаём Inertia страницу; данные будем загружать фронтом через axios
+        return Inertia::render('Menu/CoffeeIndex', [
+            'auth' => ['user' => auth()->user() ? [
+                'id' => auth()->user()->id,
+                'name' => auth()->user()->name,
+                'email' => auth()->user()->email,
+            ] : null],
+        ]);
+    }
+
 }

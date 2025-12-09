@@ -14,6 +14,9 @@
                             <Link :href="route('user.profile')" class="header__link">
                                 {{ $page.props.auth.user.name }}
                             </Link>
+                            <Link :href="route('menu.coffee')" class="header__link">
+                                Меню кофе
+                            </Link>
                             <Link
                                 :href="route('logout')"
                                 method="post"
