@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\LoginRequest;
+use App\Http\Requests\SignupRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,41 +12,34 @@ use Inertia\Inertia;
 
 class AuthController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
+        $credentials = $request->only('email', 'password');
 
         if (!Auth::attempt($credentials)) {
+            // возврат с ошибкой валидации — Inertia положит её в props.errors
             return back()->withErrors(['email' => 'Неверный email или пароль'])->withInput();
         }
 
         $request->session()->regenerate();
 
-        // При успешном логине редирект на / (главную) — Inertia загрузит страницу и получит auth.user
+        // редирект на домашнюю — Inertia выполнит переход и подгрузит auth.user
         return redirect()->intended(route('home'));
     }
 
-    public function register(Request $request)
+    public function register(SignupRequest $request)
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
+        $data = $request->validated();
 
         $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']),
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
         ]);
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        // Редирект после регистрации на главную
         return redirect()->route('home');
     }
 
@@ -58,7 +53,7 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    // Опционально, API метод для получения данных о текущем пользователе
+    // API helper (уже был)
     public function user(Request $request)
     {
         return response()->json(['user' => $request->user()]);

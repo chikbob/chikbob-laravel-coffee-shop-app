@@ -4,6 +4,8 @@
             <div class="login__container">
                 <h1 class="login__title">Вход в систему</h1>
 
+                <div v-if="globalError" class="login__alert">{{ globalError }}</div>
+
                 <form class="login__form" @submit.prevent="submit">
                     <label class="login__label">Email</label>
                     <input v-model="form.email" type="email" class="login__input"/>
@@ -27,10 +29,12 @@
 </template>
 
 <script setup>
-import {reactive, ref} from 'vue'
-import {router} from '@inertiajs/vue3'
-import {route} from 'ziggy-js'
+import { reactive, ref, watch } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AppLayout from "@/Components/AppLayout.vue";
+
+const page = usePage()
 
 const form = reactive({
     email: '',
@@ -38,15 +42,46 @@ const form = reactive({
 })
 
 const errors = ref({})
+const safeErrors = page.props.value?.errors ?? {}
+errors.value = safeErrors
 const processing = ref(false)
+const globalError = ref('')
+
+watch(
+    () => page.props.value?.errors ?? {},
+    (newErrors) => {
+        errors.value = newErrors || {}
+
+        globalError.value = ''
+
+        if (newErrors && newErrors.email && typeof newErrors.email === 'string') {
+            globalError.value = newErrors.email
+        }
+    }
+)
+
 
 const submit = () => {
     processing.value = true
     errors.value = {}
+    globalError.value = ''
 
     router.post(route('login.post'), form, {
-        onError: (err) => (errors.value = err),
+        onError: (err) => {
+            if (err && typeof err === 'object') {
+                const mapped = {}
+                Object.keys(err).forEach(k => {
+                    mapped[k] = Array.isArray(err[k]) ? err[k][0] : err[k]
+                })
+                errors.value = mapped
+                // если есть неполевая общая ошибка
+                if (mapped.email && typeof mapped.email === 'string') {
+                    globalError.value = mapped.email
+                }
+            }
+        },
         onFinish: () => (processing.value = false),
+        onSuccess: () => window.location.href = route('home'),
     })
 }
 </script>
@@ -67,6 +102,16 @@ const submit = () => {
         font-weight: 700;
         color: #1f2937;
         margin-bottom: 1.5rem;
+        text-align: center;
+    }
+
+    &__alert {
+        background: #fff5f5;
+        border: 1px solid #fecaca;
+        color: #b91c1c;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
         text-align: center;
     }
 
